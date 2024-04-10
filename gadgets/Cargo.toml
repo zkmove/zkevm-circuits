@@ -8,10 +8,11 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2.git", tag = "v0.3.0" }
 sha3 = "0.7.2"
-eth-types = { path = "../eth-types" }
+field-exts = { path = "../field-exts" }
 digest = "0.7.6"
 strum = "0.24"
 itertools = "0.10"
-
+primitive-types = "0.12"
 [dev-dependencies]
 rand = "0.8"
+halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2.git", tag = "v0.3.0", features = ["circuit-params"] }

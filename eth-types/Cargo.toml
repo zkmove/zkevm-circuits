@@ -23,6 +23,6 @@ num = "0.4"
 num-bigint = { version = "0.4" }
 strum_macros = "0.24"
 strum = "0.24"
-
+field-exts = {path = "../field-exts"}
 [features]
 warn-unimplemented = []

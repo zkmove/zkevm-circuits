@@ -11,8 +11,8 @@ members = [
     "external-tracer",
     "mock",
     "testool",
-    "bin/mpt-test"
-]
+    "bin/mpt-test",
+    "field-exts"]
 
 [patch.crates-io]
 halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2.git", tag = "v0.3.0" }

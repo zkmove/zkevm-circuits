@@ -24,17 +24,12 @@ pub mod evm_types;
 pub mod geth_types;
 pub mod keccak;
 pub mod sign_types;
+
 pub use keccak::{keccak256, Keccak};
 
 pub use bytecode::Bytecode;
 pub use error::Error;
-use halo2_proofs::{
-    halo2curves::{
-        bn256::{Fq, Fr},
-        ff::{Field as Halo2Field, FromUniformBytes, PrimeField},
-    },
-    plonk::Expression,
-};
+use halo2_proofs::halo2curves::ff::PrimeField;
 
 use crate::evm_types::{memory::Memory, stack::Stack, storage::Storage, OpcodeId};
 use ethers_core::types;
@@ -48,89 +43,10 @@ pub use ethers_core::{
         Address, Block, Bytes, Signature, H160, H256, H64, U256, U64,
     },
 };
-
+pub use field_exts::*;
 use serde::{de, Deserialize, Serialize};
 use std::{collections::HashMap, fmt, str::FromStr};
-
-/// trait to retrieve general operation itentity element
-pub trait OpsIdentity {
-    /// output type
-    type Output;
-    /// additive identity
-    fn zero() -> Self::Output;
-    /// multiplicative identity
-    fn one() -> Self::Output;
-}
-
-impl<F: Field> OpsIdentity for Expression<F> {
-    type Output = Expression<F>;
-    fn zero() -> Self::Output {
-        Expression::Constant(F::ZERO)
-    }
-
-    fn one() -> Self::Output {
-        Expression::Constant(F::ONE)
-    }
-}
-
-// Impl OpsIdentity for Fr
-impl OpsIdentity for Fr {
-    type Output = Fr;
-
-    fn zero() -> Self::Output {
-        Fr::zero()
-    }
-
-    fn one() -> Self::Output {
-        Fr::one()
-    }
-}
-
-// Impl OpsIdentity for Fq
-impl OpsIdentity for Fq {
-    type Output = Fq;
-
-    fn zero() -> Self::Output {
-        Fq::zero()
-    }
-
-    fn one() -> Self::Output {
-        Fq::one()
-    }
-}
-
-/// Trait used to reduce verbosity with the declaration of the [`PrimeField`]
-/// trait and its repr.
-pub trait Field:
-    Halo2Field + PrimeField<Repr = [u8; 32]> + FromUniformBytes<64> + Ord + OpsIdentity<Output = Self>
-{
-    /// Gets the lower 128 bits of this field element when expressed
-    /// canonically.
-    fn get_lower_128(&self) -> u128 {
-        let bytes = self.to_repr();
-        bytes[..16]
-            .iter()
-            .rev()
-            .fold(0u128, |acc, value| acc * 256u128 + *value as u128)
-    }
-    /// Gets the lower 32 bits of this field element when expressed
-    /// canonically.
-    fn get_lower_32(&self) -> u32 {
-        let bytes = self.to_repr();
-        bytes[..4]
-            .iter()
-            .rev()
-            .fold(0u32, |acc, value| acc * 256u32 + *value as u32)
-    }
-}
-
-// Impl custom `Field` trait for BN256 Fr to be used and consistent with the
-// rest of the workspace.
-impl Field for Fr {}
-
-// Impl custom `Field` trait for BN256 Frq to be used and consistent with the
-// rest of the workspace.
-impl Field for Fq {}
+use field_exts::{ToBigEndian, Word};
 
 /// Trait used to define types that can be converted to a 256 bit scalar value.
 pub trait ToScalar<F> {
@@ -149,19 +65,6 @@ pub trait ToAddress {
     /// Convert the type to a [`Address`].
     fn to_address(&self) -> Address;
 }
-
-/// Trait uset do convert a scalar value to a 32 byte array in big endian.
-pub trait ToBigEndian {
-    /// Convert the value to a 32 byte array in big endian.
-    fn to_be_bytes(&self) -> [u8; 32];
-}
-
-/// Trait used to convert a scalar value to a 32 byte array in little endian.
-pub trait ToLittleEndian {
-    /// Convert the value to a 32 byte array in little endian.
-    fn to_le_bytes(&self) -> [u8; 32];
-}
-
 // We use our own declaration of another U256 in order to implement a custom
 // deserializer that can parse U256 when returned by structLogs fields in geth
 // debug_trace* methods, which don't contain the `0x` prefix.
@@ -172,12 +75,13 @@ mod uint_types {
         pub struct DebugU256(4);
     }
 }
+
 pub use uint_types::DebugU256;
 
 impl<'de> Deserialize<'de> for DebugU256 {
     fn deserialize<D>(deserializer: D) -> Result<DebugU256, D::Error>
-    where
-        D: serde::Deserializer<'de>,
+        where
+            D: serde::Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         DebugU256::from_str(&s).map_err(de::Error::custom)
@@ -207,26 +111,6 @@ impl ToWord for DebugU256 {
     }
 }
 
-/// Ethereum Word (256 bits).
-pub type Word = U256;
-
-impl ToBigEndian for U256 {
-    /// Encode the value as byte array in big endian.
-    fn to_be_bytes(&self) -> [u8; 32] {
-        let mut bytes = [0u8; 32];
-        self.to_big_endian(&mut bytes);
-        bytes
-    }
-}
-
-impl ToLittleEndian for U256 {
-    /// Encode the value as byte array in little endian.
-    fn to_le_bytes(&self) -> [u8; 32] {
-        let mut bytes = [0u8; 32];
-        self.to_little_endian(&mut bytes);
-        bytes
-    }
-}
 
 impl<F: Field> ToScalar<F> for U256 {
     fn to_scalar(&self) -> Option<F> {
@@ -449,8 +333,8 @@ impl fmt::Debug for GethExecStep {
 
 impl<'de> Deserialize<'de> for GethExecStep {
     fn deserialize<D>(deserializer: D) -> Result<GethExecStep, D::Error>
-    where
-        D: serde::Deserializer<'de>,
+        where
+            D: serde::Deserializer<'de>,
     {
         let s = GethExecStepInternal::deserialize(deserializer)?;
         Ok(Self {
@@ -661,7 +545,7 @@ mod tests {
                         stack: Stack(vec![
                             word!("0x3635c9adc5dea00000"),
                             word!("0x40"),
-                            word!("0x0")
+                            word!("0x0"),
                         ]),
                         storage: Storage(word_map!()),
                         memory: Memory::from(vec![
@@ -684,7 +568,7 @@ mod tests {
                                 "00000000000000000000000000000000000000000000003635c9adc5dea00000"
                             ),
                         ]),
-                    }
+                    },
                 ],
             }
         );

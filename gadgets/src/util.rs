@@ -1,11 +1,12 @@
 //! Utility traits, functions used in the crate.
-use eth_types::{evm_types::OpcodeId, Field, U256};
 use halo2_proofs::plonk::Expression;
+use primitive_types::U256;
+use field_exts::Field;
 
 /// Returns the sum of the passed in cells
 pub mod sum {
     use crate::util::Expr;
-    use eth_types::Field;
+    use field_exts::Field;
     use halo2_proofs::plonk::Expression;
 
     /// Returns an expression for the sum of the list of expressions.
@@ -27,7 +28,7 @@ pub mod sum {
 /// otherwise. Inputs need to be boolean
 pub mod and {
     use crate::util::Expr;
-    use eth_types::Field;
+    use field_exts::Field;
     use halo2_proofs::plonk::Expression;
 
     /// Returns an expression that evaluates to 1 only if all the expressions in
@@ -49,7 +50,7 @@ pub mod and {
 pub mod or {
     use super::{and, not};
     use crate::util::Expr;
-    use eth_types::Field;
+    use field_exts::Field;
     use halo2_proofs::plonk::Expression;
 
     /// Returns an expression that evaluates to 1 if any expression in the given
@@ -68,7 +69,7 @@ pub mod or {
 /// `b` needs to be boolean
 pub mod not {
     use crate::util::Expr;
-    use eth_types::Field;
+    use field_exts::Field;
     use halo2_proofs::plonk::Expression;
 
     /// Returns an expression that represents the NOT of the given expression.
@@ -86,7 +87,7 @@ pub mod not {
 /// `a` and `b` needs to be boolean
 pub mod xor {
     use crate::util::Expr;
-    use eth_types::Field;
+    use field_exts::Field;
     use halo2_proofs::plonk::Expression;
 
     /// Returns an expression that represents the XOR of the given expression.
@@ -104,7 +105,7 @@ pub mod xor {
 /// `selector == 0`. `selector` needs to be boolean.
 pub mod select {
     use crate::util::Expr;
-    use eth_types::Field;
+    use field_exts::Field;
     use halo2_proofs::plonk::Expression;
 
     /// Returns the `when_true` expression when the selector is true, else
@@ -141,7 +142,7 @@ pub mod select {
 /// Returns the power of a number using straightforward multiplications
 pub mod pow {
     use crate::util::Expr;
-    use eth_types::Field;
+    use field_exts::Field;
     use halo2_proofs::plonk::Expression;
 
     use super::Scalar;
@@ -176,7 +177,7 @@ pub trait Scalar<F: Field> {
 #[macro_export]
 macro_rules! impl_scalar {
     ($type:ty) => {
-        impl<F: eth_types::Field> $crate::util::Scalar<F> for $type {
+        impl<F: field_exts::Field> $crate::util::Scalar<F> for $type {
             #[inline]
             fn scalar(&self) -> F {
                 F::from(*self as u64)
@@ -184,7 +185,7 @@ macro_rules! impl_scalar {
         }
     };
     ($type:ty, $method:path) => {
-        impl<F: eth_types::Field> $crate::util::Scalar<F> for $type {
+        impl<F: field_exts::Field> $crate::util::Scalar<F> for $type {
             #[inline]
             fn scalar(&self) -> F {
                 F::from($method(self) as u64)
@@ -205,7 +206,7 @@ pub trait Expr<F: Field> {
 macro_rules! impl_expr {
     ($type:ty) => {
         $crate::impl_scalar!($type);
-        impl<F: eth_types::Field> $crate::util::Expr<F> for $type {
+        impl<F: field_exts::Field> $crate::util::Expr<F> for $type {
             #[inline]
             fn expr(&self) -> Expression<F> {
                 Expression::Constant(F::from(*self as u64))
@@ -214,7 +215,7 @@ macro_rules! impl_expr {
     };
     ($type:ty, $method:path) => {
         $crate::impl_scalar!($type, $method);
-        impl<F: eth_types::Field> $crate::util::Expr<F> for $type {
+        impl<F: field_exts::Field> $crate::util::Expr<F> for $type {
             #[inline]
             fn expr(&self) -> Expression<F> {
                 Expression::Constant(F::from($method(self) as u64))
@@ -228,7 +229,7 @@ impl_expr!(u8);
 impl_expr!(u64);
 impl_expr!(usize);
 impl_expr!(isize);
-impl_expr!(OpcodeId, OpcodeId::as_u8);
+//impl_expr!(OpcodeId, OpcodeId::as_u8);
 
 impl<F: Field> Scalar<F> for i32 {
     #[inline]

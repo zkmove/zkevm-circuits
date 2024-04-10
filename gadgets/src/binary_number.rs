@@ -3,7 +3,7 @@
 //! equality.
 
 use crate::util::{and, not, Expr};
-use eth_types::Field;
+use field_exts::Field;
 use halo2_proofs::{
     circuit::{Region, Value},
     plonk::{Advice, Column, ConstraintSystem, Error, Expression, Fixed, VirtualCells},

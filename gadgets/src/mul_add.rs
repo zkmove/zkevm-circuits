@@ -14,7 +14,7 @@
 // | 0      | carry_hi5 | carry_hi6 | carry_hi7 | carry_hi8 | -         |
 // |--------|-----------|-----------|-----------|-----------|-----------|
 
-use eth_types::{Field, ToLittleEndian, Word};
+use field_exts::{Field, ToLittleEndian, Word};
 use halo2_proofs::{
     circuit::{Region, Value},
     plonk::{Advice, Column, ConstraintSystem, Error, Expression, VirtualCells},
@@ -382,7 +382,7 @@ impl<F: Field> MulAddChip<F> {
 mod test {
     use std::marker::PhantomData;
 
-    use eth_types::{Field, Word};
+    use field_exts::{Field, Word};
     use halo2_proofs::{
         circuit::SimpleFloorPlanner,
         dev::MockProver,

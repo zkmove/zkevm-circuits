@@ -1140,6 +1140,7 @@ version = "0.1.0"
 dependencies = [
  "ethers-core",
  "ethers-signers",
+ "field-exts",
  "halo2_proofs",
  "hex",
  "itertools 0.10.5",
@@ -1492,6 +1493,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "field-exts"
+version = "0.1.0"
+dependencies = [
+ "halo2_proofs",
+ "primitive-types",
+]
+
+[[package]]
 name = "fixed-hash"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1673,9 +1682,10 @@ name = "gadgets"
 version = "0.1.0"
 dependencies = [
  "digest 0.7.6",
- "eth-types",
+ "field-exts",
  "halo2_proofs",
  "itertools 0.10.5",
+ "primitive-types",
  "rand",
  "sha3 0.7.3",
  "strum 0.24.1",

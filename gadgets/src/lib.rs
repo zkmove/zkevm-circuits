@@ -19,7 +19,7 @@ pub mod mul_add;
 pub mod permutation;
 pub mod util;
 
-use eth_types::Field;
+use field_exts::Field;
 use halo2_proofs::plonk::Expression;
 
 /// Restrict an expression to be a boolean.
