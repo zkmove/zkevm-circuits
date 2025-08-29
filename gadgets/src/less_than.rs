@@ -3,7 +3,7 @@
 use field_exts::Field;
 use halo2_proofs::{
     circuit::{Chip, Layouter, Region, Value},
-    plonk::{Advice, Column, ConstraintSystem, Error, Expression, Fixed, VirtualCells},
+    plonk::{Advice, Column, ConstraintSystem, ErrorFront as Error, Expression, Fixed, VirtualCells},
     poly::Rotation,
 };
 
@@ -144,7 +144,12 @@ impl<F: Field, const N_BYTES: usize> LtInstruction<F> for LtChip<F, N_BYTES> {
                 || format!("lt chip: diff byte {}", idx),
                 *diff_column,
                 offset,
-                || diff_bytes.as_ref().map(|bytes| F::from(bytes[idx] as u64)),
+                || {
+                    diff_bytes.as_ref().map(|bytes| {
+                        let bytes_ref = bytes.as_ref();
+                        F::from(bytes_ref[idx] as u64)
+                    })
+                },
             )?;
         }
 
@@ -192,7 +197,7 @@ mod test {
         circuit::{Layouter, SimpleFloorPlanner, Value},
         dev::MockProver,
         halo2curves::bn256::Fr as Fp,
-        plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Selector},
+        plonk::{Advice, Circuit, Column, ConstraintSystem, ErrorFront as Error, Selector},
         poly::Rotation,
     };
     use std::marker::PhantomData;
