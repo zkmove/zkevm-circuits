@@ -15,7 +15,7 @@ use crate::util::Expr;
 use field_exts::Field;
 use halo2_proofs::{
     circuit::{AssignedCell, Region, Value},
-    plonk::{Advice, Column, ConstraintSystem, Error, Expression, Selector},
+    plonk::{Advice, Column, ConstraintSystem, ErrorFront as Error, Expression, Selector},
     poly::Rotation,
 };
 use itertools::Itertools;

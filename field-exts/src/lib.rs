@@ -6,7 +6,8 @@ use halo2_proofs::{
     plonk::Expression,
 };
 use halo2_proofs::halo2curves::pasta;
-use primitive_types::U256;
+
+pub use primitive_types::U256;
 
 /// trait to retrieve general operation itentity element
 pub trait OpsIdentity {
@@ -81,13 +82,13 @@ impl OpsIdentity for pasta::Fq {
 /// Trait used to reduce verbosity with the declaration of the [`PrimeField`]
 /// trait and its repr.
 pub trait Field:
-Halo2Field + PrimeField<Repr = [u8; 32]> + FromUniformBytes<64> + Ord + OpsIdentity<Output = Self>
+Halo2Field + PrimeField + FromUniformBytes<64> + Ord + OpsIdentity<Output = Self>
 {
     /// Gets the lower 128 bits of this field element when expressed
     /// canonically.
     fn get_lower_128(&self) -> u128 {
         let bytes = self.to_repr();
-        bytes[..16]
+        bytes.as_ref()[..16]
             .iter()
             .rev()
             .fold(0u128, |acc, value| acc * 256u128 + *value as u128)
@@ -96,7 +97,7 @@ Halo2Field + PrimeField<Repr = [u8; 32]> + FromUniformBytes<64> + Ord + OpsIdent
     /// canonically.
     fn get_lower_32(&self) -> u32 {
         let bytes = self.to_repr();
-        bytes[..4]
+        bytes.as_ref()[..4]
             .iter()
             .rev()
             .fold(0u32, |acc, value| acc * 256u32 + *value as u32)
